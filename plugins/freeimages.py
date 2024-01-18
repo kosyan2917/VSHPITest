@@ -1,5 +1,10 @@
+import os
+import random
+import urllib.request
 import plugin
 import requests
+from bs4 import BeautifulSoup
+import lxml
 
 
 class FreeImagesPlugin(plugin.Plugin):
@@ -11,9 +16,21 @@ class FreeImagesPlugin(plugin.Plugin):
 
     def parse_requests(self, tags: list, amount: int = None):
         for tag in tags:
+            if not os.path.exists(tag):
+                os.mkdir(tag)
             page = 1
             response = requests.get(self.URL.format(tag, page))
-            print(response.text)
+            html_page = BeautifulSoup(response.text, 'lxml')
+            grid_container = html_page.find('div', class_='grid-container')
+            photos = grid_container.find_all('div', class_='grid-item')
+            print(len(photos))
+            for photo in photos:
+                image_url = photo.find('img')['src']
+                print(photo.find('img')['src'])
+                if image_url.startswith('https'):
+                    urllib.request.urlretrieve(image_url, tag + '/' + str(random.randint(1, 100000)) + ".jpg")
+
+
 
     def parse_selenium(self, tags: list, amount: int = None):
         pass

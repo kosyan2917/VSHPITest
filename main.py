@@ -34,5 +34,5 @@ class ImageParser:
 
 if __name__ == '__main__':
     parser = ImageParser()
-    print(parser.plugins)
-    # parser.get_data(['cat', 'dog'], 1000)
+    # print(parser.plugins)
+    parser.get_data(['cat', 'dog'], 1000)
