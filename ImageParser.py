@@ -13,14 +13,19 @@ import plugin
 
 class ImageParser:
 
-    def __init__(self):
-        self.plugins = self.load_plugins()
+    def get_data(self, input_data: dict[str: int]) -> None:
+        plugins = self.load_plugins()
+        # for tag in input_data:
+        #     input_data[tag] = input_data[tag] // len(plugins)
+        # for plug in plugins:
+        #     plug.parse(input_data)
+        plugins[1].parse(input_data)
 
-    def get_data(self, tags: List[str], amount: int = 10):
-        self.plugins[0].parse(tags, amount)
+    def load_data(self) -> List[List[int]]:
+        pass
 
     @staticmethod
-    def load_plugins():
+    def load_plugins() -> List[plugin.Plugin]:
         loaded_plugins = []
         plugs = os.listdir('plugins')
         for plug in plugs:
@@ -31,7 +36,4 @@ class ImageParser:
         return loaded_plugins
 
 
-if __name__ == '__main__':
-    parser = ImageParser()
-    # print(parser.plugins)
-    parser.get_data(['cat', 'dog'], 1000)
+ImageParser.load_plugins()

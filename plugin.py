@@ -9,22 +9,16 @@ class Plugin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def parse_requests(self, tags: List[str], amount: int = None) -> None:
+    def parse_requests(self, input_data: dict[str: int]) -> None:
         pass
 
     @abc.abstractmethod
-    def parse_selenium(self, tags: List[str], amount: int = None) -> None:
+    def parse_selenium(self, input_data: dict[str: int]) -> None:
         pass
 
-    def parse(self, tags: List[str], amount=None) -> None:
-        if amount is None:
-            try:
-                self.parse_requests(tags)
-            except:
-                self.parse_selenium(tags)
-        else:
-            try:
-                self.parse_requests(tags, amount)
-            except Exception as e:
-                print(e)
-                self.parse_selenium(tags, amount)
+    def parse(self, input_data: dict[str: int]) -> None:
+        try:
+            self.parse_requests(input_data)
+        except Exception as e:
+            print(e)
+            self.parse_selenium(input_data)

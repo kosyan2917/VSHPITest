@@ -12,17 +12,19 @@ class FreeImagesPlugin(plugin.Plugin):
     URL = "https://www.freeimages.com/search/{0}/{1}"
 
     def info(self):
-        pass
+        return '''Плагин для сбора данных с сервиса freeimages. Делает запросы к сайту freeimages.com и парсит 
+        выдачу с помощью библиотеки BeautifulSoup.'''
 
-    def parse_requests(self, tags: list, amount: int = None):
-        for tag in tags:
+    def parse_requests(self, input_data: dict[str: int]) -> None:
+        for tag in input_data:
+            amount = input_data[tag]
             if not os.path.exists(tag):
                 os.mkdir(tag)
-            page = 71
+            page = 1
             count = 0
-            while True:
-                if count == amount:
-                    break
+            flag = True
+            while flag:
+                print('нужно скачать картинок: ', amount)
                 response = requests.get(self.URL.format(tag, page))
                 html_page = BeautifulSoup(response.text, 'lxml')
                 no_contents = html_page.find('p', class_='text-3xl')
@@ -48,6 +50,12 @@ class FreeImagesPlugin(plugin.Plugin):
                     if image_url.startswith('https'):
                         urllib.request.urlretrieve(image_url, tag + '/' + str(random.randint(1, 100000)) + ".jpg")
                         count += 1
+                        if count == amount:
+                            flag = False
+                            break
+                        print(count)
+
+                page += 1
 
 
     def parse_selenium(self, tags: list, amount: int = None):
