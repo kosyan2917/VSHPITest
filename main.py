@@ -1,7 +1,6 @@
 import os.path
 import random
 from typing import List
-import undetected_chromedriver
 import requests
 import lxml
 import urllib.request
