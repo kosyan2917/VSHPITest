@@ -1,9 +1,19 @@
-from ImageParser import ImageParser
+from image_parser import ImageParser
 
 if __name__ == '__main__':
-    parser = ImageParser()
+    data = {
+        'cat': {
+            'train': 100,
+            'test': 20
+        },
+        'dog': {
+            'train': 100,
+            'test': 20
+        },
+    }
+    parser = ImageParser(data)
+    parser.get_data()
     # print(parser.plugins)
-    parser.get_data({
-        'cat': 50,
-        'dog': 50,
-    })
+
+
+

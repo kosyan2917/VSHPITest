@@ -1,27 +1,26 @@
 import os.path
-import random
-from typing import List
-import requests
-import lxml
-import urllib.request
-from bs4 import BeautifulSoup
-import asyncio
+from typing import List, Type
 from importlib import import_module
-
+import numpy as np
 import plugin
 
 
 class ImageParser:
 
-    def get_data(self, input_data: dict[str: int]) -> None:
-        plugins = self.load_plugins()
-        # for tag in input_data:
-        #     input_data[tag] = input_data[tag] // len(plugins)
-        # for plug in plugins:
-        #     plug.parse(input_data)
-        plugins[1].parse(input_data)
+    def __init__(self, input_data: dict[str: dict[str: int]]):
+        self.input_data = input_data
 
-    def load_data(self) -> List[List[int]]:
+    def get_data(self) -> dict[str: int]:
+        plugins = self.load_plugins()
+        print(plugins)
+        parse_data = {}
+        for tag in self.input_data:
+            parse_data[tag] = (self.input_data[tag]['train'] + self.input_data[tag]['test']) // len(plugins)
+        # plugins[1].parse(parse_data)
+        for plug in plugins:
+            print(plug.parse(parse_data))
+
+    def load_data(self) -> Type[np.array]:
         pass
 
     @staticmethod
