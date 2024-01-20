@@ -20,9 +20,9 @@ class ImageParser:
         for plug in plugins:
             print(plug.parse(parse_data))
 
-    def load_data(self, max_height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
+    def load_data(self, height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
         if crop_width is None:
-            crop_width = max_height * 1.5
+            crop_width = height * 1.5
         train_data = []
         train_tags = []
         test_data = []
@@ -30,6 +30,13 @@ class ImageParser:
         train_counter = 0
         counter_tag = 0
         max_width = 0
+        for tag in self.input_data:
+            for file in os.listdir(tag):
+                image = Image.open(tag + '/' + file)
+                if image.mode != 'RGB':
+                    image = image.convert('RGB')
+                image = image.resize((int(image.width * height / image.height), height))
+                max_width = max(max_width, image.width)
         for tag in self.input_data:
             if not os.path.exists(tag):
                 raise FileNotFoundError(f"Папка с тегом {tag} не найдена. Возможно, вы не скачали картинки по тегу {tag}")
@@ -47,42 +54,30 @@ class ImageParser:
                 image = Image.open(tag + '/' + file)
                 if image.mode != 'RGB':
                     image = image.convert('RGB')
-                image = image.resize((int(image.width * max_height / image.height), max_height))
-                max_width = max(max_width, image.width)
-            for file in os.listdir(tag):
-
-                r = []
-                g = []
-                b = []
-                image = Image.open(tag + '/' + file)
-                if image.mode != 'RGB':
-                    image = image.convert('RGB')
-                image = image.resize((int(image.width * max_height / image.height), max_height))
+                image = image.resize((int(image.width * height / image.height), height))
                 if image.width > crop_width:
                     image = image.crop((0, 0, crop_width, image.height))
-                old_r, old_g, old_b = image.split()
-                old_r = np.array(old_r)
-                for i in range(len(old_r)):
-                    old_r[i] = old_r[i] / 255
-                    print(f"{i} / {len(old_r)}")
-                    r.append(np.concatenate((old_r[i], np.zeros(max_width - image.width))))
-                r = np.array(r)
-                old_g = np.array(old_g)
-                for i in range(len(old_g)):
-                    old_g[i] = old_g[i] / 255
-                    g.append(np.concatenate((old_g[i], np.zeros(max_width - image.width))))
-                g = np.array(g)
-                old_b = np.array(old_b)
-                for i in range(len(old_b)):
-                    old_b[i] = old_b[i] / 255
-                    b.append(np.concatenate((old_b[i], np.zeros(max_width - image.width))))
-                b = np.array(b)
+                image_width = image.width
+                image = np.array(image)
+                print(image.shape)
+                new_r, new_g, new_b = [], [], []
+                for i in range(height):
+                    new_r.append(np.concatenate((image[i][:, 0], np.zeros(max_width - image_width))))
+                    new_g.append(np.concatenate((image[i][:, 1], np.zeros(max_width - image_width))))
+                    new_b.append(np.concatenate((image[i][:, 2], np.zeros(max_width - image_width))))
+                new_r = np.array(new_r)
+                new_g = np.array(new_g)
+                new_b = np.array(new_b)
+                new_image = np.array([new_r, new_g, new_b])
+                new_image = np.transpose(new_image, (1, 2, 0))
+                new_image = Image.fromarray(new_image.astype('uint8'))
+                new_image.show()
                 if train_counter < train_amount:
-                    train_data.append(np.array([r, g, b]))
+                    train_data.append(np.array([new_r, new_g, new_b]))
                     train_tags.append(counter_tag)
                     train_counter += 1
                 else:
-                    test_data.append(np.array([r, g, b]))
+                    test_data.append(np.array([new_r, new_g, new_b]))
                     test_tags.append(counter_tag)
                 counter_tag += 1
         return np.array(train_data), np.array(train_tags), np.array(test_data), np.array(test_tags)
