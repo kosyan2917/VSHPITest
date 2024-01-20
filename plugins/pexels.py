@@ -19,7 +19,6 @@ class PexelsPlugin(plugin.Plugin):
         for tag in input_data:
             try:
                 counter = 0
-                print('aaa')
                 amount = input_data[tag]
                 payload = {'query': tag, 'per_page': self.PHOTOS_PER_PAGE, 'page': 1}
                 page_num = amount // self.PHOTOS_PER_PAGE + 1
@@ -33,10 +32,8 @@ class PexelsPlugin(plugin.Plugin):
                     response = requests.get(self.URL, params=payload, headers=headers)
                     if response.json()['total_results'] < amount:
                         amount = response.json()['total_results']
-                    print(response.json())
                     photos = response.json()['photos']
                     for photo in photos:
-                        print(photo['src']['original'])
                         opener = urllib.request.build_opener()
                         opener.addheaders = [
                             ('Authorization', api_key)]

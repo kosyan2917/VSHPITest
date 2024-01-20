@@ -30,7 +30,6 @@ class FreeImagesPlugin(plugin.Plugin):
                     response = requests.get(self.URL.format(tag, page))
                     html_page = BeautifulSoup(response.text, 'lxml')
                     no_contents = html_page.find('p', class_='text-3xl')
-                    print(no_contents)
                     if no_contents is not None:
                         print(html_page.find('p', class_='text-3xl').text)
                         print(f"Кончились картинки для {tag}")
@@ -43,11 +42,8 @@ class FreeImagesPlugin(plugin.Plugin):
                         print(f"Вероятно на сайте freeimage не нашлось картинок по тегу {tag}")
                         flag = False
                         continue
-                    print(found_amount)
                     grid_container = html_page.find('div', class_='grid-container')
-                    print(grid_container)
                     photos = grid_container.find_all('div', class_='grid-item')
-                    print(len(photos))
                     for photo in photos:
                         image_url = photo.find('img')['src']
                         print(photo.find('img')['src'])

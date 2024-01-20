@@ -1,3 +1,3 @@
 import os
 
-print(len(os.listdir('cat')))
+print(len(os.listdir('dog')))
