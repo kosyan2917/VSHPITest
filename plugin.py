@@ -9,5 +9,5 @@ class Plugin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def parse(self, input_data: dict[str: int]) -> int:
+    def parse(self, input_data: dict[str: int]) -> dict[str: int]:
         pass

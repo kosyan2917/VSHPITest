@@ -12,7 +12,10 @@ if __name__ == '__main__':
         },
     }
     parser = ImageParser(data)
-    parser.get_data()
+    # parser.get_data()
+    x_train, y_train, x_test, y_test = parser.load_data()
+    print(x_train.shape)
+    print(x_test.shape)
     # print(parser.plugins)
 
 
