@@ -7,28 +7,64 @@ from PIL import Image, ImageFile
 
 
 class ImageParser:
+    """
+        Класс для парсинга изображений из открытых источников на основе входных данных.
+
+        Атрибуты:
+            input_data (dict[str: tuple[int, int]]): Словарь, содержащий информацию о том, какие картинки и
+            какое количество необходимо искать.
+
+        Methods:
+            __init__(self, input_data: dict[str: tuple[int, int]]): Конструктор класса ImageParser.
+            get_info(self) -> None: Печатает информацию о плагине в консоль.
+            get_data(self) -> dict[str: int]: Парсит изображения и возвращает количетсво скачанных изображений
+            для каждого класса.
+            load_data(self, height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
+                Загружает данные в пямять в виде массивов numpy.
+            load_plugins() -> List[plugin.Plugin]: Загружает плагины из папки plugins.
+        """
 
     def __init__(self, input_data: dict[str: tuple[int, int]]):
         self.input_data = input_data
         ImageFile.LOAD_TRUNCATED_IMAGES = True
+        if not input_data:
+            raise ValueError("Словарь с данными не может быть пустым")
+        for tag in input_data:
+            if not tag:
+                raise ValueError("Тег не может быть пустым")
+            if len(input_data[tag]) != 2:
+                raise ValueError("Каждому тегу должно соответствовать два числа: "
+                                 "число картинок для обучения и число картинок для тестирования")
+            if input_data[tag][0] < 1 or input_data[tag][1] < 1:
+                raise ValueError("Число картинок не может быть меньше 1")
 
     def get_info(self) -> None:
+        """Печатает информацию о плагине в консоль."""
         plugins = self.load_plugins()
         for plug in plugins:
             print(plug.info())
 
     def get_data(self) -> dict[str: int]:
+        """Парсит изображения и возвращает количетсво скачанных изображений
+            для каждого класса."""
         plugins = self.load_plugins()
         plugins = plugins[:1]
+        result = {}
         print(plugins)
         parse_data = {}
         for tag in self.input_data:
             parse_data[tag] = (self.input_data[tag][0] + self.input_data[tag][1]) // len(plugins)
         # plugins[1].parse(parse_data)
         for plug in plugins:
-            print(plug.parse(parse_data))
+            parsed = plug.parse(parse_data)
+            for tag in parsed:
+                if tag not in result:
+                    result[tag] = 0
+                result[tag] += parsed[tag]
+        return result
 
     def load_data(self, height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
+        """Загружает данные в пямять в виде массивов numpy."""
         if crop_width is None:
             crop_width = height * 1.5
         train_data = []
@@ -92,6 +128,7 @@ class ImageParser:
 
     @staticmethod
     def load_plugins() -> List[plugin.Plugin]:
+        """Загружает плагины из папки plugins"""
         loaded_plugins = []
         plugs = os.listdir('plugins')
         for plug in plugs:
