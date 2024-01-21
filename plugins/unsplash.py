@@ -44,5 +44,3 @@ class UnsplashPlugin(plugin.Plugin):
                 print(f"Плагин Unsplash выдал ошибку {e} при скачивании картинок по тегу {tag}. Скачано картинок: {counter}")
                 result[tag] = counter
         return result
-    def parse_selenium(self, tags: List[str], amount: int = None):
-        raise NotImplementedError("Данный плагин не поддерживает Selenium")

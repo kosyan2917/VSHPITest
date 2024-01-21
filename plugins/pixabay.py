@@ -14,6 +14,7 @@ import lxml
 import undetected_chromedriver as uc
 from webdriver_manager.chrome import ChromeDriverManager
 
+
 class PixaBayPlugin(plugin.Plugin):
 
     def info(self):
@@ -35,7 +36,7 @@ class PixaBayPlugin(plugin.Plugin):
             else:
                 pages = driver.find_element(By.XPATH, '//*[@id="app"]/div[1]/div/div[2]/div[4]/div[3]/div')
                 pages_num = int(pages.text.split()[-1])
-                
+
             result[tag] = counter
         return result
 

@@ -61,8 +61,3 @@ class FreeImagesPlugin(plugin.Plugin):
                 print(f"Плагин freeimages выдал ошибку {e} при скачивании картинок по тегу {tag}. Скачано {counter} картинок")
                 result[tag] = counter
         return result
-
-
-
-    def parse_selenium(self, tags: list, amount: int = None):
-        pass

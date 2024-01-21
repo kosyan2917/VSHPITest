@@ -48,5 +48,3 @@ class PexelsPlugin(plugin.Plugin):
                     f"Плагин Pexels выдал ошибку {e} при скачивании картинок по тегу {tag}. Скачано картинок: {counter}")
                 result[tag] = counter
         return result
-    def parse_selenium(self, tags: list, amount: int = None):
-        pass
