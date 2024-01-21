@@ -42,6 +42,7 @@ class PexelsPlugin(plugin.Plugin):
                         counter += 1
                         if counter == amount:
                             break
+                        print(f"Плагином pexels скачано {counter} картинок из {amount} по тегу {tag} ")
                 result[tag] = counter
             except Exception as e:
                 print(

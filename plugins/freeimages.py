@@ -26,7 +26,6 @@ class FreeImagesPlugin(plugin.Plugin):
                 counter = 0
                 flag = True
                 while flag:
-                    print('нужно скачать картинок: ', amount)
                     response = requests.get(self.URL.format(tag, page))
                     html_page = BeautifulSoup(response.text, 'lxml')
                     no_contents = html_page.find('p', class_='text-3xl')
@@ -46,7 +45,6 @@ class FreeImagesPlugin(plugin.Plugin):
                     photos = grid_container.find_all('div', class_='grid-item')
                     for photo in photos:
                         image_url = photo.find('img')['src']
-                        print(photo.find('img')['src'])
                         if image_url.startswith('https'):
                             urllib.request.urlretrieve(image_url, tag + '/' + str(random.randint(1, 100000)) + ".jpg")
                             counter += 1
@@ -54,7 +52,7 @@ class FreeImagesPlugin(plugin.Plugin):
                                 flag = False
                                 result[tag] = counter
                                 break
-                            print(counter)
+                            print(f"Плагин freeimages скачал {counter} картинок из {amount} по тегу {tag}")
                     page += 1
                 result[tag] = counter
             except Exception as e:

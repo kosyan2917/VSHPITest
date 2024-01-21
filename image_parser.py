@@ -13,22 +13,26 @@ class ImageParser:
         Атрибуты:
             input_data (dict[str: tuple[int, int]]): Словарь, содержащий информацию о том, какие картинки и
             какое количество необходимо искать.
+            plugins (List[plugin.Plugin]): Список плагинов, которые будут использоваться для парсинга. Если
+            список пустой, то будут использоваться все плагины из папки plugins.
         Методы:
             __init__(self, input_data: dict[str: tuple[int, int]]): Конструктор класса ImageParser.
 
             get_info(self) -> None: Печатает информацию о плагине в консоль.
 
-            get_data(self) -> dict[str: int]: Парсит изображения и возвращает количетсво скачанных изображений
+            get_data(self) -> dict[str: int]: Парсит изображения и возвращает количество скачанных изображений
             для каждого класса.
 
             load_data(self, height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
-                Загружает данные в пямять в виде массивов numpy.
+                Загружает данные в память в виде массивов numpy.
 
             load_plugins() -> List[plugin.Plugin]: Загружает плагины из папки plugins.
         """
 
-    def __init__(self, input_data: dict[str: tuple[int, int]]):
+    def __init__(self, input_data: dict[str: tuple[int, int]], plugins: List[str] = None):
         self.input_data = input_data
+        self.plugins = self.load_plugins(plugins)
+
         ImageFile.LOAD_TRUNCATED_IMAGES = True
         if not input_data:
             raise ValueError("Словарь с данными не может быть пустым")
@@ -43,27 +47,22 @@ class ImageParser:
 
     def get_info(self) -> None:
         """Печатает информацию о плагине в консоль."""
-        plugins = self.load_plugins()
-        for plug in plugins:
-            print(plug.info())
+        for plug in self.plugins:
+            print(plug.__class__.__name__, ' ', plug.info())
 
     def get_data(self) -> dict[str: int]:
         """
-            Парсит изображения и возвращает количетсво скачанных изображений
+            Парсит изображения и возвращает количество скачанных изображений
             для каждого класса.
 
             Возвращает:
-                dict[str: int]: Словарь, содержащий информацию о том, сколько изображений было скачано для каждого класса.
+                dict[str: int]: Словарь, содержащий информацию о том, сколько изображений было скачано для каждого класса
         """
-        plugins = self.load_plugins()
-        plugins = plugins[:1]
         result = {}
-        print(plugins)
         parse_data = {}
         for tag in self.input_data:
-            parse_data[tag] = (self.input_data[tag][0] + self.input_data[tag][1]) // len(plugins)
-        # plugins[1].parse(parse_data)
-        for plug in plugins:
+            parse_data[tag] = (self.input_data[tag][0] + self.input_data[tag][1]) // len(self.plugins)
+        for plug in self.plugins:
             parsed = plug.parse(parse_data)
             for tag in parsed:
                 if tag not in result:
@@ -73,7 +72,7 @@ class ImageParser:
 
     def load_data(self, height: int = 500, crop_width: int = None) -> (np.array, np.array, np.array, np.array):
         """
-            Загружает данные в пямять в виде массивов numpy.
+            Загружает данные в память в виде массивов numpy.
 
             Аргументы:
                 height (int): Высота выходного изображения. По умолчанию 500.
@@ -111,6 +110,7 @@ class ImageParser:
                       f"собраны из {actual_amount} картинок пропорционально заданному количеству.")
                 train_amount = int(actual_amount * train_amount / wanted_amount)
                 test_amount = int(actual_amount * test_amount / wanted_amount)
+
             # Перебираем все картинки в папке с тегом
             for file in os.listdir(tag):
                 image = Image.open(tag + '/' + file)
@@ -122,23 +122,27 @@ class ImageParser:
                     image = image.rotate(90, expand=1)
                 # Изменяем высоту картинки до заданной, ширину - пропорционально
                 image = image.resize((int(image.width * height / image.height), height))
+
                 # Обрезаем картинку до заданной ширины, если она больше
                 if image.width > crop_width:
                     image = image.crop((0, 0, crop_width, image.height))
                 image_width = image.width
                 image = np.array(image, dtype=np.uint8)
                 new_r, new_g, new_b = [], [], []
+
                 # Разделяем картинку на три канала и добавляем в каждую строку картинки нули до заданной ширины
                 for i in range(height):
                     new_r.append(np.concatenate((image[i][:, 0], np.zeros(int(crop_width - image_width), dtype=np.uint8))))
                     new_g.append(np.concatenate((image[i][:, 1], np.zeros(int(crop_width - image_width), dtype=np.uint8))))
                     new_b.append(np.concatenate((image[i][:, 2], np.zeros(int(crop_width - image_width), dtype=np.uint8))))
+
                 new_r = np.array(new_r)
                 new_g = np.array(new_g)
                 new_b = np.array(new_b)
                 new_image = np.array([new_r, new_g, new_b], dtype=np.uint8)
                 new_image = np.transpose(new_image, (1, 2, 0))
                 new_image = Image.fromarray(new_image.astype('uint8'))
+
                 if train_counter < train_amount:
                     train_data.append(new_image)
                     train_tags.append(counter_tag)
@@ -154,18 +158,31 @@ class ImageParser:
         return np.array(train_data), np.array(train_tags), np.array(test_data), np.array(test_tags)
 
     @staticmethod
-    def load_plugins() -> List[plugin.Plugin]:
+    def load_plugins(plugin_list: List[str] = None) -> List[plugin.Plugin]:
         """
             Загружает плагины из папки plugins
+
+            Аргументы:
+                plugin_list (List[str]): Список имен плагинов для загрузки
+                Если None, то загружаются все плагины из папки plugins
 
             Возвращает:
                 List[plugin.Plugin]: Список загруженных плагинов
         """
-        loaded_plugins = []
-        plugs = os.listdir('plugins')
-        for plug in plugs:
-            if plug.endswith('.py'):
-                import_module('plugins.' + plug[:-3])
-        for plug in plugin.Plugin.__subclasses__():
-            loaded_plugins.append(plug())
+        if plugin_list is None:
+            loaded_plugins = []
+            plugs = os.listdir('plugins')
+            for plug in plugs:
+                if plug.endswith('.py'):
+                    if plug == '__init__.py':
+                        continue
+                    import_module('plugins.' + plug[:-3])
+            for plug in plugin.Plugin.__subclasses__():
+                loaded_plugins.append(plug())
+        else:
+            loaded_plugins = []
+            for plug in plugin_list:
+                import_module('plugins.' + plug)
+            for plug in plugin.Plugin.__subclasses__():
+                loaded_plugins.append(plug())
         return loaded_plugins
